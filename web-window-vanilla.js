@@ -275,6 +275,7 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
         taskFrameResize.appendChild(resizeTopRight);
         taskFrameResize.appendChild(resizeBottomLeft);
         taskFrameResize.appendChild(resizeBottomRight);
+        taskFrameWindow.appendChild(taskFrameResize);
     }
 
     /* Sets the title for the window, and then appends the title element
