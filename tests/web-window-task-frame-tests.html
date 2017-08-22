@@ -2,14 +2,21 @@
 <html>
 <head>
 <title>TaskFrame test</title>
-<link type="text/css" rel="stylesheet" href="reset.css" />
-<link type="text/css" rel="stylesheet" href="web-window.css" />
+<link type="text/css" rel="stylesheet" href="../reset.css" />
+<link type="text/css" rel="stylesheet" href="main.css" />
+<link type="text/css" rel="stylesheet" href="../web-window.css" />
 </head>
 <body>
+<ul id="web-window-taskbar"></ul>
 <div id="foreground">
     <div id="before-node"></div>
 </div>
-<script type="text/javascript" src="web-window-vanilla.js"></script>
+<script type="text/javascript" src="../web-window-vanilla.js"></script>
+<script type="text/javascript">
+WebWindow.desktopID = 'foreground';
+WebWindow.beforeElementID = 'before-node';
+WebWindow.taskAssistantID = 'web-window-taskbar';
+</script>
 <script type="text/javascript" src="web-window-task-frame-tests.js"></script>
 </body>
 </html>

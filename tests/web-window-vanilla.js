@@ -1,1 +1,0 @@
-../web-window-vanilla.js

@@ -1,32 +1,30 @@
-var newWindow = new WebWindow.TaskFrame({
+var _ta = new WebWindow.TaskAssistant();
+var newWindow = _ta.createTask({
     title : 'Hello window',
     content : '<h1>It Works</h1>'
-}, {
-    deleteTaskById : function(taskID) {
-
-    }
 });
-var newWindow2 = new WebWindow.TaskFrame({
+var newWindow2 = _ta.createTask({
     title : 'Window number 2',
     content : '<h1>This also works</h1>'
 });
 
 newWindow2.updateContent('<div><code><pre>Content modified</pre></code></div>');
+var newWindowUI = newWindow2.getWindow();
 
 function automatedWindowTest() {
-    newWindow2.moveTo(300, 100);
+    newWindowUI.moveTo(300, 100);
     setTimeout(function() { 
-        newWindow2.maximize();
+        newWindowUI.maximize();
         setTimeout(function() {
-            newWindow2.maximize();
+            newWindowUI.maximize();
             setTimeout(function() {
-                newWindow2.minimize();
+                newWindowUI.minimize();
                 console.log(newWindow2.getWindow());
                 setTimeout(function() {
-                    newWindow2.minimize();
-                    console.log(newWindow2.getWindow());
+                    newWindowUI.minimize();
+                    console.log(newWindowUI.getWindow());
                     setTimeout(function() {
-                        newWindow2.close();
+                        newWindowUI.close();
                     }, 1000);
                 }, 1000);
             }, 1000);
@@ -36,7 +34,7 @@ function automatedWindowTest() {
 
 automatedWindowTest();
 
-newWindow3 = new WebWindow.TaskFrame({
+newWindow3 = _ta.createTask({
     title : 'Third window',
     content: '<p>Here is the third window</p>'
 });
