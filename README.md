@@ -51,7 +51,7 @@ A TaskAssistant instance has properties like:
   - removeTaskById(taskID, callback): removes a Task instance, by its instance ID
   - closeAll(): closes all running tasks
   - getTasks(toRetrieve): returns multiple or a singular task(s) by supplied instance IDs 
-  - refreshTasks(): recreates the items in the id of WebWindow.taskAssistantID (currently treated as a <ul> object)
+  - refreshTasks(): recreates the items in the id of WebWindow.taskAssistantID (currently treated as a ul list element)
   - createTask(taskData): creates a new task and adds it to the monitored tasks, and calls refreshTasks()
   
  WebWindow.MainMenu and WebWindow.Board is currently in progress.
