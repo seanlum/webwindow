@@ -1,0 +1,63 @@
+body,
+html {
+  background-image: url("02531_oceansunrise_2560x1600.jpg");
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-size: 1920px 1080px;
+  font-family: tahoma;
+  font-size: 0.95rem;
+}
+#web-window-taskbar {
+  box-shadow: 0 0 1px 2px #000;
+}
+#web-window-taskbar {
+  position: fixed;
+  display: flex;
+  flex: 1;
+  flex-grow: 1;
+  max-width: 100%;
+  max-height: 35px;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border: 1px solid #333;
+  padding-right: 0.25rem;
+  background: linear-gradient(rgba(255,255,255, 0.6), rgba(255,255,255, 0.2));
+}
+#web-window-taskbar li {
+  display: flex;
+  flex: 1;
+  flex-grow: 1;
+  max-width: 99%;
+  max-height: 100%;
+  background: rgba(255,255,255, 0.4);
+  border: 1px solid #333;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+  margin-left: 0.25rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+  border-radius: 0.25rem;
+  maring-right: 0.25rem;
+  padding: .30rem;
+  transition: background .15s ease-in-out;
+}
+#web-window-taskbar li:hover {
+  background: #fff;
+}
+#foreground {
+  margin-top: 0;
+  background: rgba(255,255,255, 0);
+  margin: 3px;
+  position: fixed;
+  display: flex;
+  flex: 1;
+  flex-grow: 1;
+  max-width: 100%;
+  max-height: 100%;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 35px;
+  box-shadow: 0 3px 2px 4px #000;
+}

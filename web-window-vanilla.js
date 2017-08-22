@@ -4,9 +4,15 @@
     GitHub: seanlum
 */
 var WebWindow = function() {}
-WebWindow.desktopID = 'foreground';
+WebWindow.desktopID = 'web-window-desktop';
 WebWindow.beforeElementID = 'before-node';
+WebWindow.taskAssistantID = 'web-window-taskbar';
 WebWindow.classes = {
+    mainMenu : 'web-window-main-menu',
+    mainMenuContainer : 'web-window-main-menu-container',
+    mainMenuItem : 'web-window-main-menu-item',
+    menuMinimize : 'web-window-main-menu-minimize',
+    task : 'web-window-task-item',
     fadeIn : 'web-window-fade-in',
     fadeOut : 'web-window-fade-out',
     invisible : 'web-window-invisible',
@@ -18,6 +24,7 @@ WebWindow.classes = {
     taskFrameHeader : 'task-frame-header',
     taskFrameButtons : 'task-frame-buttons',
     taskFrameContent : 'task-frame-content',
+    taskFrameContentBorder : 'task-frame-content-border',
     taskFrameDragbar : 'task-frame-dragbar',
     taskFrameResize : 'task-frame-resize',
     taskFrameWindowTitle : 'task-frame-window-title',
@@ -104,9 +111,9 @@ WebWindow.Util = {
                     WebWindow.Util.CSS.dragdrop.element = null;
                     window.onmousemove = null;
                 }
-                var desktop = document.getElementById(WebWindow.desktopID);
-                var beforeNode = document.getElementById(WebWindow.beforeElementID);
-                desktop.insertBefore(WebWindow.Util.CSS.dragdrop.element, beforeNode);
+                /*
+
+                */
             } else if (/dragend/.test(type)) {
                 window.onmousemove = null;
                 WebWindow.Util.CSS.dragdrop.element = null;
@@ -136,23 +143,20 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
     var taskFrameWindow = document.createElement('div');
         taskFrameWindow.className = WebWindow.classes.taskFrameWindow;
         taskFrameWindow.id = Date.now();
-        taskFrameWindow.addEventListener('click', function(event) {
-            document.getElementById(WebWindow.desktopID)
-                .insertBefore(document.getElementById(taskFrameWindow.id),
-                              document.getElementById(WebWindow.beforeElementID));
-        });
     var taskFrameWindowTitle = document.createElement('div');
-        taskFrameWindowTitle.className = WebWindow.classes.taskFrameWindowTitle + ' noselect';
+        taskFrameWindowTitle.className = WebWindow.classes.taskFrameWindowTitle;
     var taskFrameHeader = document.createElement('div');
-        taskFrameHeader.className = WebWindow.classes.taskFrameHeader + ' noselect';
+        taskFrameHeader.className = WebWindow.classes.taskFrameHeader;
     var taskFrameButtons = document.createElement('ul');
-        taskFrameButtons.className = WebWindow.classes.taskFrameButtons + ' noselect';
+        taskFrameButtons.className = WebWindow.classes.taskFrameButtons;
     var taskFrameContent = document.createElement('div');
-        taskFrameContent.className = WebWindow.classes.taskFrameContent + ' noselect';
+        taskFrameContent.className = WebWindow.classes.taskFrameContent;
+    var taskFrameContentBorder = document.createElement('div');
+        taskFrameContentBorder.className = WebWindow.classes.taskFrameContentBorder;
     var taskFrameDragbar = document.createElement('div');
-        taskFrameDragbar.className = WebWindow.classes.taskFrameDragbar + ' noselect';
+        taskFrameDragbar.className = WebWindow.classes.taskFrameDragbar;
     var taskFrameResize = document.createElement('div');
-        taskFrameResize.className = WebWindow.classes.taskFrameResize + ' noselect';
+        taskFrameResize.className = WebWindow.classes.taskFrameResize;
 
 
         /* Resizing control DOM elements, all sides and corners */
@@ -334,6 +338,7 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
     */
     function closeWindow() {
         setTimeout(function() {
+            taskAssistant.removeTaskById(taskFrameWindow.id);
             document.getElementById(taskFrameWindow.id).parentElement.removeChild(taskFrameWindow);
         });
     }
@@ -349,13 +354,15 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
             { title : 'X', action : closeWindow }
         ].forEach(function(taskButton, taskButtonIndex, taskButtonArray) {
             currentTaskButton = document.createElement('li');
-            currentTaskButton.onclick = taskButton.action;
+            currentTaskButton.onclick =  function(event) {
+                taskButton.action();
+            }
             currentTaskButton.innerText = taskButton.title;
             taskFrameButtons.appendChild(currentTaskButton);
             currentTaskButton = undefined;
         });
         taskFrameHeader.appendChild(taskFrameButtons);
-        taskFrameWindow.appendChild(taskFrameHeader);
+        taskFrameContentBorder.appendChild(taskFrameHeader);
     }
 
     /*
@@ -395,13 +402,28 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
         setDragBar();
         /* Sets the familiar window management buttons on
         the window in the header */
+
         setTaskButtons();
-        /* Adds event handlers to the TaskFrame object, and will
-           respond to Board events such as 'closeall' or 'close'.
-        */
+
         setTaskFrameHandlers();
-        taskFrameContent.innerHTML = data.content;
-        taskFrameWindow.appendChild(taskFrameContent);
+        (function() {
+            if (!data.content) {
+                taskFrameContent.innerHTML = 'No content supplied';
+            } else if (typeof data.content !== 'string' && data.content.tagName) {
+                taskFrameContent.appendChild(data.content);
+            } else if (typeof data.content === 'string') {
+                taskFrameContent.innerHTML = data.content;
+            }
+        })();
+        if (data.height) {
+            taskFrameWindow.style.height = data.height;
+        }
+        if (data.width) {
+            taskFrameWindow.style.width = data.width;
+        }
+        taskFrameContentBorder.appendChild(taskFrameContent);
+        taskFrameWindow.appendChild(taskFrameContentBorder);
+
         document.getElementById(WebWindow.desktopID)
             .insertBefore(taskFrameWindow, document.getElementById(WebWindow.beforeElementID));
         toggleVisibility();
@@ -420,10 +442,32 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
             _taskFrameWindow.style.top = y + 'px';
         },
         updateContent : function(updateContent) {
-            taskFrameContent.innerHTML = updateContent;
+            if (typeof updateContent !== 'string' && updateContent.tagName) {
+                console.log('I think this is an element');
+                taskFrameContent.innerHTML = '';
+                taskFrameContent.appendChild(updateContent);
+            } else { 
+                console.log('I think this is a string');
+                taskFrameContent.innerHTML = updateContent;
+            }
+        },
+        updateTitle : function(newTitle) {
+            taskFrameWindowTitle.innerText = newTitle;
+        },
+        setSize : function(newX, newY) {
+            var _taskFrameWindow = document.getElementById(taskFrameWindow.id);
+            _taskFrameWindow.style.height = String(Number(newY)) + 'px';
+            _taskFrameWindow.style.width = String(Number(newX)) + 'px';
         },
         getWindow : function() {
             return document.getElementById(taskFrameWindow.id);
+        },
+        getTitle : function() {
+            return taskFrameWindowTitle.innerText;
+        },
+        focus : function() {
+            var _taskFrameWindow = document.getElementById(taskFrameWindow.id);
+            _taskFrameWindow.focus();
         },
         toggleWindow : toggleVisibility,
         minimize : minimizeWindow,
@@ -434,30 +478,39 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
     create();
     return TaskFrameAPI;
 }
-/* Task object for TaskAssistant */
+/* Task object for TaskAssistant, this is where the window is managed
+by the TaskAssistant, and where the task information is stored with the 
+window. */
 WebWindow.Task = function(data, taskAssistant) {
+    this.taskWindow = new WebWindow.TaskFrame(data, taskAssistant);
     var self = this;
     self.getTitle = function() {
-
+        return self.taskWindow.getTitle();
     }
-    self.getID = function() {
 
+    self.getID = function() {
+        console.log({window : self.taskWindow});
+        return self.taskWindow.getWindow().id;
+    }
+    self.updateContent = function(contentToSet) {
+        self.taskWindow.updateContent(contentToSet);
     }
     self.getWindow = function() { 
-
+        return self.taskWindow;
     }
     self.minimize = function() {
-
+        self.taskWindow.minimize();
     }
     self.maximize = function() {
-
+        self.taskWindow.maximize();
     }
     self.close = function() {
-
+        self.taskWindow.close();
     }
     self.toggleWindow = function() {
-
+        self.taskWindow.toggleVisibility();
     }
+    return self;
 }
 /* TaskAsisstant, which manages tasks and their TaskFrames */
 WebWindow.TaskAssistant = function() {
@@ -476,24 +529,79 @@ WebWindow.TaskAssistant = function() {
             deleteTaskByName : function(taskName) {
 
             },
-            getTasks : function() {
-
+            addTask : function(taskToAdd) {
+                this.Tasks.push(taskToAdd);
             },
-            getGroup : function(groupID) {
-
+            removeTaskById : function(taskID, callback) {
+                console.log({ requested : taskID});
+                this.Tasks = this.Tasks.filter(function(task) {
+                    console.log({ got : task, need : taskID });
+                    if (task.taskWindow.getWindow().id === taskID) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                });
+                this.refreshTasks();
             },
-            getTasks : function() {
-
+            closeAll : function() {
+                var current;
+                while(current = this.Tasks.pop()) {
+                    current.close();
+                }
+            },
+            getTasks : function(toRetrieve) {
+                var filteredTasks;
+                if (typeof toRetrieve === "string") {
+                    filteredTasks = this.Tasks.filter(function(task) {
+                        if (task.getID() == toRetrieve) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    });
+                } else if (toRetrieve.length && toRetrieve.pop) {
+                    filteredTasks = this.Tasks.filter(function(task) {
+                        if (toRetrieve.indexOf(task.getID()) !== -1) {
+                            console.log('yep');
+                            return true;
+                        } else {
+                            console.log('nope');
+                            return false;
+                        }
+                    });
+                } else {
+                   console.error("Invalid type '" + typeof toRetrieve + "' supplied");
+                }
+                return filteredTasks;
+            },
+            refreshTasks : function() {
+                var bar = document.getElementById(WebWindow.taskAssistantID);
+                bar.innerHTML = '';
+                this.Tasks.map(function(task) {
+                    var taskItem = document.createElement('li');
+                    taskItem.className = WebWindow.classes.task;
+                    taskItem.onclick = task.minimize;
+                    taskItem.innerText = task.getTitle();
+                    bar.appendChild(taskItem);
+                });
+            },
+            createTask : function(taskData) {
+                var newTask = new WebWindow.Task(taskData, this);
+                this.addTask(newTask);
+                this.refreshTasks();
+                return newTask;
             }
         }
     }
     return WebWindow.TaskAssistant.instance;
 }
 /* MainMenu element where tasks are launched */
-WebWindow.MainMenu = function(menuConfig) {
+WebWindow.MainMenu = function(menuConfig, taskAssistant) {
     if (!WebWindow.MainMenu.instance) {
         WebWindow.MainMenu.instance = {
-            menuID : menuConfig.menuID,
+            menuID : menuConfig.id,
+            menuItems : menuConfig.menuData,
             getMenu : function() {
 
             },
@@ -502,19 +610,44 @@ WebWindow.MainMenu = function(menuConfig) {
             },
             toggleVisibility : function() {
 
-            }, 
+            },
             loadBaseMenu : function() {
 
+            },
+            configMenu : function() {
+                console.log(this.menuItems);
+                var _menu = document.getElementById(WebWindow.classes.mainMenuContainer);
+                var _mainMenu = document.getElementById(WebWindow.classes.mainMenu);
+                _mainMenu.onclick = function(event) {
+                    WebWindow.Util.CSS.toggleClass(_menu, WebWindow.classes.menuMinimize);
+                    console.log(_menu.className);
+                }
+                console.log(_menu);
+                var _this = this;
+                _this.menuItems.map(function(menuItemData) {
+                    var _menuItem = document.createElement('li');
+                    _menuItem.onclick = function(clickEvent) {
+                         console.log({data : menuItemData});
+                        taskAssistant.createTask(menuItemData);
+                    }
+                    _menuItem.innerText = menuItemData.title;
+                    _menuItem.className = WebWindow.classes.mainMenuItem;
+                    _menu.appendChild(_menuItem);
+                });
             }
         }
+        WebWindow.MainMenu.instance.configMenu();
     }
+    console.log('main menu is initialized!');
     return WebWindow.MainMenu.instance;
 }
 /* Board is where the MainMenu, TaskAssistant, and Tasks have instances */
 WebWindow.Board = function(boardConfig) {
     if (!WebWindow.Board.instance) {
+        var _taskAssistant = new WebWindow.TaskAssistant();
         WebWindow.Board.instance = {
-            taskAssistant : boardConfig.taskAssistant,
+            taskAssistant : _taskAssistant,
+            mainMenu : new WebWindow.MainMenu(boardConfig.menuConfig, _taskAssistant),
             minimizeAll : function() {},
             maximizeAll : function() {},
             closeAll : function() {}, 
