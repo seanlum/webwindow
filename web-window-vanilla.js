@@ -8,6 +8,11 @@ WebWindow.desktopID = 'web-window-desktop';
 WebWindow.beforeElementID = 'before-node';
 WebWindow.taskAssistantID = 'web-window-taskbar';
 WebWindow.classes = {
+    TAGUI : {
+        contextMenu : 'web-window-tagui-contextmenu',
+        list : 'web-window-tagui-list',
+        row : 'web-window-tagui-row'
+    },
     mainMenu : 'web-window-main-menu',
     mainMenuContainer : 'web-window-main-menu-container',
     mainMenuItem : 'web-window-main-menu-item',
@@ -445,6 +450,7 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
             if (typeof updateContent !== 'string' && updateContent.tagName) {
                 console.log('I think this is an element');
                 taskFrameContent.innerHTML = '';
+                console.log(updateContent);
                 taskFrameContent.appendChild(updateContent);
             } else { 
                 console.log('I think this is a string');
@@ -489,7 +495,6 @@ WebWindow.Task = function(data, taskAssistant) {
     }
 
     self.getID = function() {
-        console.log({window : self.taskWindow});
         return self.taskWindow.getWindow().id;
     }
     self.updateContent = function(contentToSet) {
@@ -505,7 +510,7 @@ WebWindow.Task = function(data, taskAssistant) {
         self.taskWindow.maximize();
     }
     self.close = function() {
-        self.taskWindow.close();
+        return self.taskWindow.close();
     }
     self.toggleWindow = function() {
         self.taskWindow.toggleVisibility();
@@ -517,31 +522,26 @@ WebWindow.TaskAssistant = function() {
     if (!WebWindow.TaskAssistant.instance) {
         WebWindow.TaskAssistant.instance = {
             Tasks : [],
-            oncontextmenu : function(event, task) {
-
-            }, 
-            renderTaskList : function() {
-
-            },
-            deleteTaskByID : function(taskID) {
-
-            },
-            deleteTaskByName : function(taskName) {
-
+            GUI : {
+                task : new WebWindow.Task({
+                    title : "TaskAssistant",
+                    content : "This will be populated when there are tasks"
+                })
             },
             addTask : function(taskToAdd) {
                 this.Tasks.push(taskToAdd);
             },
             removeTaskById : function(taskID, callback) {
-                console.log({ requested : taskID});
                 this.Tasks = this.Tasks.filter(function(task) {
-                    console.log({ got : task, need : taskID });
-                    if (task.taskWindow.getWindow().id === taskID) {
+                    if (task.getID() === taskID) {
+                        task.close();
+                        setTimeout(callback,0);
                         return false;
                     } else {
                         return true;
                     }
                 });
+
                 this.refreshTasks();
             },
             closeAll : function() {
@@ -553,6 +553,7 @@ WebWindow.TaskAssistant = function() {
             getTasks : function(toRetrieve) {
                 var filteredTasks;
                 if (typeof toRetrieve === "string") {
+                    console.log(["Filtering for string", toRetrieve]);
                     filteredTasks = this.Tasks.filter(function(task) {
                         if (task.getID() == toRetrieve) {
                             return true;
@@ -563,10 +564,8 @@ WebWindow.TaskAssistant = function() {
                 } else if (toRetrieve.length && toRetrieve.pop) {
                     filteredTasks = this.Tasks.filter(function(task) {
                         if (toRetrieve.indexOf(task.getID()) !== -1) {
-                            console.log('yep');
                             return true;
                         } else {
-                            console.log('nope');
                             return false;
                         }
                     });
@@ -577,14 +576,52 @@ WebWindow.TaskAssistant = function() {
             },
             refreshTasks : function() {
                 var bar = document.getElementById(WebWindow.taskAssistantID);
+                var tasks = document.createElement("ul");
+                tasks.className = WebWindow.classes.TAGUI.list;
                 bar.innerHTML = '';
-                this.Tasks.map(function(task) {
-                    var taskItem = document.createElement('li');
-                    taskItem.className = WebWindow.classes.task;
-                    taskItem.onclick = task.minimize;
-                    taskItem.innerText = task.getTitle();
-                    bar.appendChild(taskItem);
-                });
+                if (this.Tasks.length == 0) {
+                    this.GUI.task.updateContent("<h1 style='color: #fff; background: #000;'>This will be populated when there are tasks</h1>");
+                } else {
+                    this.Tasks.map(function(task) {
+                        var taskItem = document.createElement('li');
+                        var guiItem = document.createElement('li');
+                        guiItem.className = WebWindow.classes.TAGUI.row;
+                        guiItem.innerText = task.getTitle();
+                        taskItem.className = WebWindow.classes.task;
+                        taskItem.onclick = task.minimize;
+                        guiItem.oncontextmenu = function(contextEvent) {
+                            var contextDiv = document.createElement('div');
+                            contextDiv.className = WebWindow.classes.TAGUI.contextMenu;
+                            contextDiv.id = 'TAGUI' + String(Date.now());
+                            this.taguiid = contextDiv.id;
+                            var __tagui_cm_this = this;
+                            contextDiv.innerText = "Close it??";
+                            window.onmousedown = function(blurEvent) {
+                                setTimeout(function() {
+                                    try {
+                                        document.getElementById(__tagui_cm_this.taguiid).parentElement.removeChild(contextDiv);
+                                    } catch (alreadyDeletedError) {
+                                        console.error(['Possibly removed node was not found', alreadyDeletedError]);
+                                    }
+                                }, 0);
+                            }
+                            contextDiv.onmousedown = function(mouseDownEvent) {
+                                return false;
+                            }
+                            contextDiv.focus();
+                            contextDiv.style.top = String(contextEvent.clientY) + 'px';
+                            contextDiv.style.left = String(contextEvent.clientX) + 'px';
+                            document.body.appendChild(contextDiv);
+                            console.log([contextEvent.clientX, contextEvent.clientY]);
+                            contextEvent.preventDefault();
+                            return false;
+                        }
+                        taskItem.innerText = task.getTitle();
+                        tasks.appendChild(guiItem);
+                        bar.appendChild(taskItem);
+                    });
+                    this.GUI.task.updateContent(tasks);
+                }
             },
             createTask : function(taskData) {
                 var newTask = new WebWindow.Task(taskData, this);
@@ -655,6 +692,7 @@ WebWindow.Board = function(boardConfig) {
             setTaskFrameStyles : function(cssData) {}
         }
     }
+    return WebWindow.Board.instance;
 };
 
 WebWindow.TaskData = {};

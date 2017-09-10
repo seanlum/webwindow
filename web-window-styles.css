@@ -181,3 +181,35 @@ body {
     top: -100% !important;
     padding: 0;
 }
+.web-window-tagui-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    top: 0; bottom: 0;
+    right: 0; left: 0;
+    height: auto; width: auto;
+    display: flex;
+    flex-grow: 1;
+}
+.web-window-tagui-row {
+    clear: both;
+    width: 100%;
+    margin: 2px;
+    padding: 1rem;
+    background: #fff;
+    color: #333;
+    font-size: 0.85rem;
+}
+
+.web-window-tagui-contextmenu {
+    position: fixed;
+    display: block;
+    top: auto; left: auto;
+    bottom: auto; right: auto;
+    margin: 0; padding: 0.25rem;
+    max-width: 150px; height: auto;
+    background: #fff;
+    color: #333;
+    box-shadow: 0 2px 2px rgba(0,0,0,0.5);
+}
