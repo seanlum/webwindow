@@ -19,7 +19,7 @@
     </div>
     <script type="text/javascript" src="web-window-vanilla.js"></script>
     <script type="text/javascript">
-        var taskAssistant = new WebWindow.Board({
+        var newEnvironment = new WebWindow.Board({
             menuConfig : {
                 menuData : [
                     {
@@ -43,7 +43,49 @@
                 ]
             }
         });
-    
+
+        function taskAssistantTests() {
+            newEnvironment.taskAssistant.refreshTasks();
+            var testTask = newEnvironment.taskAssistant.createTask({
+                title : 'New Task',
+                content : '<span style="color: white !important">Testing Task from environment</span>',
+                height : '150px',
+                width : '20rem'
+            });
+            var filteredTasks = newEnvironment.taskAssistant.getTasks(testTask.getID());
+            if (filteredTasks.length > 1) {
+                console.log("This means that the date has occurred twice");
+            } else {
+                console.log(["IDs should be consistent", testTask.getID(), filteredTasks[0].getID()]);
+                console.log(["Origin object creation time: ", new Date(Number(testTask.getID()))]);
+                console.log(["Filtered creation time: ", new Date(Number(filteredTasks[0].getID()))]);
+            }
+            var secondTask = newEnvironment.taskAssistant.createTask({
+                title : 'Second Task',
+                content : "",
+                height : '10rem',
+                width : '10rem'
+            });
+            var batchRetrieve = newEnvironment.taskAssistant.getTasks([
+                testTask.getID(),
+                secondTask.getID()
+            ]);
+            if (batchRetrieve.map && batchRetrieve.length) {
+                var removeTimeout = 0;
+                batchRetrieve.map(function(task) {
+                    removeTimeout += 1000;
+                    task.maximize();
+                    setTimeout(function() {
+                        console.log(["Closing task", Date.now()]);
+                        task.minimize();
+                        newEnvironment.taskAssistant.removeTaskById(task.getID(), function() {
+                            console.log(["Task removed", Date.now()]);
+                        });
+                    }, 2000 + removeTimeout);
+                });
+            }
+        }
+        // taskAssistantTests();
     </script>
 </body>
 </html>
