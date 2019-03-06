@@ -344,7 +344,9 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
     function closeWindow() {
         setTimeout(function() {
             taskAssistant.removeTaskById(taskFrameWindow.id);
-            document.getElementById(taskFrameWindow.id).parentElement.removeChild(taskFrameWindow);
+            if (null !== document.getElementById(taskFrameWindow.id)) {
+                document.getElementById(taskFrameWindow.id).parentElement.removeChild(taskFrameWindow);
+            }
         });
     }
 
@@ -448,12 +450,9 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
         },
         updateContent : function(updateContent) {
             if (typeof updateContent !== 'string' && updateContent.tagName) {
-                console.log('I think this is an element');
                 taskFrameContent.innerHTML = '';
-                console.log(updateContent);
                 taskFrameContent.appendChild(updateContent);
-            } else { 
-                console.log('I think this is a string');
+            } else {
                 taskFrameContent.innerHTML = updateContent;
             }
         },
@@ -574,11 +573,42 @@ WebWindow.TaskAssistant = function() {
                 }
                 return filteredTasks;
             },
+            getTasksContextMenu : function(suppliedTask) {
+                this.task = suppliedTask;
+                var __context_menu_this = this;
+                return function(contextEvent) {
+                    var contextDiv = document.createElement('div');
+                    contextDiv.className = WebWindow.classes.TAGUI.contextMenu;
+                    this.taguiid = 'TAGUI' + String(Date.now());
+                    contextDiv.id = this.taguiid;
+                    var __tagui_cm_this = this;
+                    contextDiv.innerText = "Close it??";
+                    contextDiv.focus();
+                    contextDiv.style.top = String(contextEvent.clientY) + 'px';
+                    contextDiv.style.left = String(contextEvent.clientX) + 'px';
+                    document.body.appendChild(contextDiv);
+                    window.onmousedown = function(blurEvent) {
+                        window.onmousedown = undefined;
+                        setTimeout(function() {
+                            __context_menu_this.task.close();
+                            if (null !== document.getElementById(__tagui_cm_this.taguiid)) {
+                                document.getElementById(__tagui_cm_this.taguiid).parentElement.removeChild(contextDiv);
+                            }
+                        }, 0);
+                    }
+                    contextDiv.onmousedown = function(mouseDownEvent) {
+                        return false;
+                    }
+                    contextEvent.preventDefault();
+                    return false;
+                }
+            },
             refreshTasks : function() {
                 var bar = document.getElementById(WebWindow.taskAssistantID);
                 var tasks = document.createElement("ul");
                 tasks.className = WebWindow.classes.TAGUI.list;
                 bar.innerHTML = '';
+                var __tagui_cm_this = this;
                 if (this.Tasks.length == 0) {
                     this.GUI.task.updateContent("<h1 style='color: #fff; background: #000;'>This will be populated when there are tasks</h1>");
                 } else {
@@ -589,33 +619,7 @@ WebWindow.TaskAssistant = function() {
                         guiItem.innerText = task.getTitle();
                         taskItem.className = WebWindow.classes.task;
                         taskItem.onclick = task.minimize;
-                        guiItem.oncontextmenu = function(contextEvent) {
-                            var contextDiv = document.createElement('div');
-                            contextDiv.className = WebWindow.classes.TAGUI.contextMenu;
-                            contextDiv.id = 'TAGUI' + String(Date.now());
-                            this.taguiid = contextDiv.id;
-                            var __tagui_cm_this = this;
-                            contextDiv.innerText = "Close it??";
-                            window.onmousedown = function(blurEvent) {
-                                setTimeout(function() {
-                                    try {
-                                        document.getElementById(__tagui_cm_this.taguiid).parentElement.removeChild(contextDiv);
-                                    } catch (alreadyDeletedError) {
-                                        console.error(['Possibly removed node was not found', alreadyDeletedError]);
-                                    }
-                                }, 0);
-                            }
-                            contextDiv.onmousedown = function(mouseDownEvent) {
-                                return false;
-                            }
-                            contextDiv.focus();
-                            contextDiv.style.top = String(contextEvent.clientY) + 'px';
-                            contextDiv.style.left = String(contextEvent.clientX) + 'px';
-                            document.body.appendChild(contextDiv);
-                            console.log([contextEvent.clientX, contextEvent.clientY]);
-                            contextEvent.preventDefault();
-                            return false;
-                        }
+                        guiItem.oncontextmenu = __tagui_cm_this.getTasksContextMenu(task);
                         taskItem.innerText = task.getTitle();
                         tasks.appendChild(guiItem);
                         bar.appendChild(taskItem);
@@ -652,19 +656,15 @@ WebWindow.MainMenu = function(menuConfig, taskAssistant) {
 
             },
             configMenu : function() {
-                console.log(this.menuItems);
                 var _menu = document.getElementById(WebWindow.classes.mainMenuContainer);
                 var _mainMenu = document.getElementById(WebWindow.classes.mainMenu);
                 _mainMenu.onclick = function(event) {
                     WebWindow.Util.CSS.toggleClass(_menu, WebWindow.classes.menuMinimize);
-                    console.log(_menu.className);
                 }
-                console.log(_menu);
                 var _this = this;
                 _this.menuItems.map(function(menuItemData) {
                     var _menuItem = document.createElement('li');
                     _menuItem.onclick = function(clickEvent) {
-                         console.log({data : menuItemData});
                         taskAssistant.createTask(menuItemData);
                     }
                     _menuItem.innerText = menuItemData.title;
@@ -675,7 +675,6 @@ WebWindow.MainMenu = function(menuConfig, taskAssistant) {
         }
         WebWindow.MainMenu.instance.configMenu();
     }
-    console.log('main menu is initialized!');
     return WebWindow.MainMenu.instance;
 }
 /* Board is where the MainMenu, TaskAssistant, and Tasks have instances */
