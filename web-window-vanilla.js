@@ -44,6 +44,9 @@ WebWindow.classes = {
     resizeBottomLeft : 'web-window-resize-bottom-left'
 };
 WebWindow.Util = {
+    debug : {
+        enabled : true
+    },
     CSS : {
         hasClass : function(element, className) {
             var result = new RegExp('\w{0,}' + className + '\w{0,}').test(element.className);
@@ -317,9 +320,7 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
         WebWindow.Util.CSS.addClass(_taskFrameWindow, WebWindow.classes.maximizeAnimation);
         WebWindow.Util.CSS.toggleClass(_taskFrameWindow, WebWindow.classes.maximize);
         setTimeout(function() {
-            console.log(_taskFrameWindow);
             WebWindow.Util.CSS.removeClass(_taskFrameWindow, WebWindow.classes.maximizeAnimation);
-            console.log(_taskFrameWindow);
         }, 250);
     }
 
@@ -331,7 +332,6 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
         var _taskFrameWindow = document.getElementById(taskFrameWindow.id);
         WebWindow.Util.CSS.addClass(_taskFrameWindow, WebWindow.classes.minimizeAnimation);
         WebWindow.Util.CSS.toggleClass(_taskFrameWindow, WebWindow.classes.minimize);
-        console.log({ classes :  _taskFrameWindow.className, name : WebWindow.classes.minimize });
         setTimeout(function() {
             /* WebWindow.Util.CSS.toggleClass(_taskFrameWindow, WebWindow.classes.invisible); */
             WebWindow.Util.CSS.removeClass(_taskFrameWindow, WebWindow.classes.minimizeAnimation);
@@ -552,7 +552,6 @@ WebWindow.TaskAssistant = function() {
             getTasks : function(toRetrieve) {
                 var filteredTasks;
                 if (typeof toRetrieve === "string") {
-                    console.log(["Filtering for string", toRetrieve]);
                     filteredTasks = this.Tasks.filter(function(task) {
                         if (task.getID() == toRetrieve) {
                             return true;
@@ -569,7 +568,7 @@ WebWindow.TaskAssistant = function() {
                         }
                     });
                 } else {
-                   console.error("Invalid type '" + typeof toRetrieve + "' supplied");
+                   WebWindow.Util.debug.enabled ? console.error("Invalid type '" + typeof toRetrieve + "' supplied") : false
                 }
                 return filteredTasks;
             },
