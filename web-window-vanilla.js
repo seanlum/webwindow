@@ -512,7 +512,7 @@ WebWindow.Task = function(data, taskAssistant) {
         return self.taskWindow.close();
     }
     self.toggleWindow = function() {
-        self.taskWindow.toggleVisibility();
+        self.taskWindow.toggleWindow();
     }
     return self;
 }
@@ -549,6 +549,16 @@ WebWindow.TaskAssistant = function() {
                     current.close();
                 }
             },
+	    minimizeAll : function() {
+		this.Tasks.map(function(task) {
+			task.minimize();
+		});
+	    },
+	    maximizeAll : function() {
+		this.Tasks.map(function(task) {
+			task.maximize();
+		});
+	    },
             getTasks : function(toRetrieve) {
                 var filteredTasks;
                 if (typeof toRetrieve === "string") {
@@ -618,6 +628,7 @@ WebWindow.TaskAssistant = function() {
                         guiItem.innerText = task.getTitle();
                         taskItem.className = WebWindow.classes.task;
                         taskItem.onclick = task.minimize;
+			guiItem.onclick = task.minimize;
                         guiItem.oncontextmenu = __tagui_cm_this.getTasksContextMenu(task);
                         taskItem.innerText = task.getTitle();
                         tasks.appendChild(guiItem);
@@ -683,9 +694,15 @@ WebWindow.Board = function(boardConfig) {
         WebWindow.Board.instance = {
             taskAssistant : _taskAssistant,
             mainMenu : new WebWindow.MainMenu(boardConfig.menuConfig, _taskAssistant),
-            minimizeAll : function() {},
-            maximizeAll : function() {},
-            closeAll : function() {}, 
+            minimizeAll : function() {
+		    _taskAssistant.minimizeAll();
+	    },
+            maximizeAll : function() {
+		    _taskAssistant.maximizeAll();
+	    },
+            closeAll : function() {
+		    _taskAssistant.closeAll();
+	    },
             setBoardSize : function(newLength, newHeight) {},
             setTaskFrameStyles : function(cssData) {}
         }
