@@ -1,6 +1,6 @@
 /*
     WebWindow - Windowing system for the web
-    Created By: Sean Lum 
+    Created By: Sean Lum
     GitHub: seanlum
 */
 var WebWindow = function() {}
@@ -119,9 +119,6 @@ WebWindow.Util = {
                     WebWindow.Util.CSS.dragdrop.element = null;
                     window.onmousemove = null;
                 }
-                /*
-
-                */
             } else if (/dragend/.test(type)) {
                 window.onmousemove = null;
                 WebWindow.Util.CSS.dragdrop.element = null;
@@ -304,11 +301,21 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
        is appended to the window header.
     */
     function setDragBar() {
-        taskFrameDragbar.onmousedown = function(event) {
-            _taskFrameWindow = document.getElementById(taskFrameWindow.id);
-            WebWindow.Util.CSS.dragdrop(event, 'dragstart', _taskFrameWindow);
+        taskFrameDragbar.onmousedown = function(dragBarMouseEvent) {
+	    window.onmouseup = function() {
+		    window.onmousemove = undefined;
+	    }
+	    window.onmousemove = function(windowMouseEvent) {
+		if (/Midori/.test(window.navigator.userAgent)) {
+		    taskFrameWindow.style.top = String(windowMouseEvent.pageY + dragBarMouseEvent.layerY) + 'px';
+		    taskFrameWindow.style.left = String(windowMouseEvent.pageX - dragBarMouseEvent.layerX) + 'px';
+		} else {
+		    taskFrameWindow.style.top = String(windowMouseEvent.pageY - dragBarMouseEvent.layerY) + 'px';
+		    taskFrameWindow.style.left = String(windowMouseEvent.pageX - dragBarMouseEvent.layerX) + 'px';
+	        }
+	    }
         }
-        taskFrameHeader.appendChild(taskFrameDragbar);
+	taskFrameHeader.appendChild(taskFrameDragbar);
     }
 
     /* Temporarily assigns a transition animation for the window, then toggles
@@ -499,7 +506,7 @@ WebWindow.Task = function(data, taskAssistant) {
     self.updateContent = function(contentToSet) {
         self.taskWindow.updateContent(contentToSet);
     }
-    self.getWindow = function() { 
+    self.getWindow = function() {
         return self.taskWindow;
     }
     self.minimize = function() {
@@ -551,12 +558,12 @@ WebWindow.TaskAssistant = function() {
             },
 	    minimizeAll : function() {
 		this.Tasks.map(function(task) {
-			task.minimize();
+		    task.minimize();
 		});
 	    },
 	    maximizeAll : function() {
 		this.Tasks.map(function(task) {
-			task.maximize();
+		    task.maximize();
 		});
 	    },
             getTasks : function(toRetrieve) {
