@@ -302,20 +302,42 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
     */
     function setDragBar() {
         taskFrameDragbar.onmousedown = function(dragBarMouseEvent) {
-	    window.onmouseup = function() {
-		    window.onmousemove = undefined;
-	    }
-	    window.onmousemove = function(windowMouseEvent) {
-		if (/Midori/.test(window.navigator.userAgent)) {
-		    taskFrameWindow.style.top = String(windowMouseEvent.pageY + dragBarMouseEvent.layerY) + 'px';
-		    taskFrameWindow.style.left = String(windowMouseEvent.pageX - dragBarMouseEvent.layerX) + 'px';
-		} else {
-		    taskFrameWindow.style.top = String(windowMouseEvent.pageY - dragBarMouseEvent.layerY) + 'px';
-		    taskFrameWindow.style.left = String(windowMouseEvent.pageX - dragBarMouseEvent.layerX) + 'px';
-	        }
-	    }
+            window.onmouseup = function() {
+                window.onmousemove = undefined;
+            }
+            window.onmousemove = function(windowMouseEvent) {
+            if (/Midori/.test(window.navigator.userAgent)) {
+                taskFrameWindow.style.top = String(windowMouseEvent.pageY + dragBarMouseEvent.layerY) + 'px';
+                taskFrameWindow.style.left = String(windowMouseEvent.pageX - dragBarMouseEvent.layerX) + 'px';
+            } else {
+                taskFrameWindow.style.top = String(windowMouseEvent.pageY - dragBarMouseEvent.layerY) + 'px';
+                taskFrameWindow.style.left = String(windowMouseEvent.pageX - dragBarMouseEvent.layerX) + 'px';
+                }
+            }
         }
-	taskFrameHeader.appendChild(taskFrameDragbar);
+        taskFrameDragbar.addEventListener('touchstart', function(dragBarTouchEvent) {
+            window.ontouchend = function() {
+                window.ontouchmove = undefined;
+            }
+            window.ontouchcancel = function() {
+                window.ontouchmove = undefined;
+            }
+            window.ontouchmove = function(windowTouchEvent) {
+                var dragTouchIndex = 0;
+                var sPageXAvg = 0;
+                var sPageYAvg = 0;
+                for (; dragTouchIndex < windowTouchEvent.touches.length; dragTouchIndex++) {
+                    sPageXAvg += windowTouchEvent.touches[dragTouchIndex].pageX;
+                    sPageYAvg += windowTouchEvent.touches[dragTouchIndex].pageY;
+                }
+                sPageXAvg = sPageXAvg / dragTouchIndex;
+                sPageYAvg = sPageYAvg / dragTouchIndex;
+
+                taskFrameWindow.style.top = String(sPageYAvg - (dragBarTouchEvent.target.clientHeight / 2)) + 'px';
+                taskFrameWindow.style.left = String(sPageXAvg - (taskFrameWindow.clientWidth / 2)) + 'px';
+            }
+        });
+        taskFrameHeader.appendChild(taskFrameDragbar);
     }
 
     /* Temporarily assigns a transition animation for the window, then toggles
