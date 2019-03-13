@@ -231,10 +231,67 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
             }
         }
 
+        function calculateTouchEventDelta(touchEvent) {
+            let touchDelta = {
+                pageY : 0,
+                pageX : 0,
+                count : 0
+            }
+            for (; touchDelta.count < touchEvent.touches.length; touchDelta.count++) {
+                touchDelta.pageY += touchEvent.touches[touchDelta.count].pageY;
+                touchDelta.pageX += touchEvent.touches[touchDelta.count].pageX;
+            }
+            touchDelta.pageY = touchDelta.pageY / touchDelta.count;
+            touchDelta.pageX = touchDelta.pageX / touchDelta.count;
+            touchDelta.count;
+            return touchDelta;
+        }
+
+        function touchMove(resizer, callback) {
+	        return function(touchStartEvent) {
+                let currentWindow = getWindow();
+                ifSizes(currentWindow);
+                let originState = {
+                    window : currentWindow,
+                    top : firstNumber(currentWindow.style.top),
+                    left : firstNumber(currentWindow.style.left),
+                    height : currentWindow.clientHeight,
+                    width : currentWindow.clientWidth,
+                    startDelta : calculateTouchEventDelta(touchStartEvent),
+	            }
+                let intervalCreator = undefined;
+                let pressHoldCounter = 1;
+                function showResizer() {
+                    resizer.ontouchmove = function(touchMoveEvent) {
+                        originState.moveDelta = calculateTouchEventDelta(touchMoveEvent);
+                        callback(originState)
+                    }
+                }
+
+                function intervalCounter() {
+	                if (pressHoldCounter > 2) {
+                        pressHoldCounter = 1;
+                        showResizer();
+                        clearInterval(intervalCreator);
+                    } else {
+                        pressHoldCounter++;
+                    }
+                }
+                intervalCreator = setInterval(intervalCounter, 100);
+                touchStartEvent.preventDefault();
+                return false;
+            }
+	    }
+
         resizeTop.onmousedown = mouseMove(function(event) {
             var elem = getWindow();
             elem.style.top = (firstNumber(elem.style.top) + event.movementY) + 'px';
             elem.style.height = (firstNumber(elem.style.height) - event.movementY) + 'px';
+        });
+
+        resizeTop.ontouchstart = touchMove(resizeTop, function(originData) {
+            originData.window.style.top = originData.top - Number(originData.startDelta.pageY - originData.moveDelta.pageY) + 'px';
+            originData.window.style.height = originData.height + Number(originData.startDelta.pageY - originData.moveDelta.pageY) + 'px';
         });
 
         resizeLeft.onmousedown = mouseMove(function(event) {
@@ -243,13 +300,27 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
             elem.style.width = (firstNumber(elem.style.width) - event.movementX) + 'px';
         });
 
+        resizeLeft.ontouchstart = touchMove(resizeLeft, function(originData) {
+            originData.window.style.left = originData.left - Number(originData.startDelta.pageX - originData.moveDelta.pageX) + 'px';
+            originData.window.style.width = originData.width + Number(originData.startDelta.pageX - originData.moveDelta.pageX) + 'px';
+        });
+
         resizeRight.onmousedown = mouseMove(function(event) {
             var elem = getWindow();
             elem.style.width = (firstNumber(elem.style.width) + event.movementX) + 'px';
         });
+
+        resizeRight.ontouchstart = touchMove(resizeRight, function(originData) {
+            originData.window.style.width = originData.width - Number(originData.startDelta.pageX - originData.moveDelta.pageX) + 'px';
+        });
+
         resizeBottom.onmousedown = mouseMove(function(event) {
             var elem = getWindow();
             elem.style.height = (firstNumber(elem.style.height) + event.movementY) + 'px';
+        });
+
+        resizeBottom.ontouchstart = touchMove(resizeBottom, function(originData) {
+            originData.window.style.width = originData.width - Number(originData.startDelta.pageX - originData.moveDelta.pageX) + 'px';
         });
 
         resizeTopLeft.onmousedown = mouseMove(function(event) {
@@ -259,23 +330,51 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
             elem.style.left = (firstNumber(elem.style.left) + event.movementX) + 'px';
             elem.style.width = (firstNumber(elem.style.width) - event.movementX) + 'px';
         });
+
+        resizeTopLeft.ontouchstart = touchMove(resizeTopLeft, function(originData) {
+            originData.window.style.top = originData.top - Number(originData.startDelta.pageY - originData.moveDelta.pageY) + 'px';
+            originData.window.style.height = originData.height + Number(originData.startDelta.pageY - originData.moveDelta.pageY) + 'px';
+            originData.window.style.left = originData.left - Number(originData.startDelta.pageX - originData.moveDelta.pageX) + 'px';
+            originData.window.style.width = originData.width + Number(originData.startDelta.pageX - originData.moveDelta.pageX) + 'px';
+        });
+
         resizeTopRight.onmousedown = mouseMove(function(event) {
             var elem = getWindow();
             elem.style.top = (firstNumber(elem.style.top) + event.movementY) + 'px';
             elem.style.height = (firstNumber(elem.style.height) - event.movementY) + 'px';
             elem.style.width = (firstNumber(elem.style.width) + event.movementX) + 'px';
         });
+
+        resizeTopRight.ontouchstart = touchMove(resizeTopRight, function(originData) {
+            originData.window.style.top = originData.top - Number(originData.startDelta.pageY - originData.moveDelta.pageY) + 'px';
+            originData.window.style.height = originData.height + Number(originData.startDelta.pageY - originData.moveDelta.pageY) + 'px';
+            originData.window.style.width = originData.width - Number(originData.startDelta.pageX - originData.moveDelta.pageX) + 'px';
+        });
+
         resizeBottomLeft.onmousedown = mouseMove(function(event) {
             var elem = getWindow();
             elem.style.height = (firstNumber(elem.style.height) + event.movementY) + 'px';
             elem.style.left = (firstNumber(elem.style.left) + event.movementX) + 'px';
             elem.style.width = (firstNumber(elem.style.width) - event.movementX) + 'px';
         });
+
+        resizeBottomLeft.ontouchstart = touchMove(resizeBottomLeft, function(originData) {
+            originData.window.style.height = originData.height - Number(originData.startDelta.pageY - originData.moveDelta.pageY) + 'px';
+            originData.window.style.left = originData.left - Number(originData.startDelta.pageX - originData.moveDelta.pageX) + 'px';
+            originData.window.style.width = originData.width + Number(originData.startDelta.pageX - originData.moveDelta.pageX) + 'px';
+        });
+
         resizeBottomRight.onmousedown = mouseMove(function(event) {
             var elem = getWindow();
             elem.style.width = (firstNumber(elem.style.width) + event.movementX) + 'px';
             elem.style.height = (firstNumber(elem.style.height) + event.movementY) + 'px';
         });
+
+        resizeBottomRight.ontouchstart = touchMove(resizeBottomRight, function(originData) {
+            originData.window.style.height = originData.height - Number(originData.startDelta.pageY - originData.moveDelta.pageY) + 'px';
+            originData.window.style.width = originData.width - Number(originData.startDelta.pageX - originData.moveDelta.pageX) + 'px';
+        });
+
         taskFrameResize.appendChild(resizeLeft);
         taskFrameResize.appendChild(resizeTop);
         taskFrameResize.appendChild(resizeBottom);
