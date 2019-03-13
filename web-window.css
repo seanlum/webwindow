@@ -39,7 +39,7 @@
 }
 .task-frame-buttons {
   position: absolute;
-  right: 0; top: 0;
+  right: 0; top: 0px;
   display: inline-block;
 }
 .task-frame-buttons li {
@@ -59,7 +59,7 @@
 .task-frame-content-border {
   position: absolute;
   top: 0px;
-  left: -1px;
+  left: 0px;
   padding: 0;
   margin: 0;
   height: 100%; width: 100%;
@@ -76,6 +76,7 @@
   bottom: 0; right: 0;
   overflow-x: auto;
   overflow-y: auto;
+  color: #fff;
 }
 .task-frame-content::after {
   content: '';
@@ -93,7 +94,7 @@
   background: transparent;
 }
 .task-frame-window-title {
-  background: transparent;
+  background: #00AEFF;
   position:relative;
   max-width: 100%;
   max-height: 100%;
@@ -113,52 +114,52 @@
   z-index: 80;
 }
 .web-window-resize-top {
-  height: 8px;
-  top: -2px;
+  height: 16px;
+  top: -9px;
   left: 0px;
   width: 100%;
   background: red;
 }
 
 .web-window-resize-left {
-  width: 8px;
+  width: 16px;
   top: -2px;
   height: 100%;
-  left: -1px;
+  left: -9px;
   background:tan;
 }
 .web-window-resize-right {
-  width: 8px;
+  width: 16px;
   top: -2px;
-  right: -1px;
+  right: -9px;
   height: 100%;
   background: green;
 }
 .web-window-resize-bottom {
   width: 100%;
-  bottom: -1px;
-  height: 8px;
+  bottom: -11px;
+  height: 16px;
   left: 0;
   background: blue;
 }
 .web-window-resize-top-left {
-  height: 8px; width: 8px;
-  top: -1px; left: -1px;
+  height: 16px; width: 16px;
+  top: -9px; left: -9px;
 }
 .web-window-resize-top-right {
-  height: 8px; width: 8px;
-  top: -1px; right: -1px;
+  height: 16px; width: 16px;
+  top: -9px; right: -9px;
   background: cyan;
 }
 .web-window-resize-bottom-right {
-  height: 8px; width: 8px;
-  bottom: 0px; right: -1px;
+  height: 16px; width: 16px;
+  bottom: -11px; right: -9px;
   background: magenta;
 }
 .web-window-resize-bottom-left {
   background: black;
-  height: 8px; width: 8px;
-  bottom: -1px; left: -1px;
+  height: 16px; width: 16px;
+  bottom: -11px; left: -9px;
 }
 .web-window-resizer {
   position: absolute;
@@ -249,3 +250,6 @@
   padding-left: 0.5rem;
   padding-right: 0.5rem;
 }
+
+
+

@@ -320,7 +320,7 @@ WebWindow.TaskFrame = function(data, taskAssistant) {
         });
 
         resizeBottom.ontouchstart = touchMove(resizeBottom, function(originData) {
-            originData.window.style.width = originData.width - Number(originData.startDelta.pageX - originData.moveDelta.pageX) + 'px';
+            originData.window.style.height = originData.height - Number(originData.startDelta.pageY - originData.moveDelta.pageY) + 'px';
         });
 
         resizeTopLeft.onmousedown = mouseMove(function(event) {
