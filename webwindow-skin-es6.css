@@ -1,0 +1,129 @@
+#web-window-desktop {
+    background: #e0e0e0;
+    box-shadow: 0 3px 2px 1px #000;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+  }
+  .task-frame-content {
+    top: 28px;
+  }
+  .task-frame-window-border {
+    background: transparent;
+    /*
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    */
+  }
+  .task-frame-window-title {
+    background: rgba(0,0,0,0.7);
+    height: 100%;
+    text-shadow: 0 0 2px #111;
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.85rem;
+    padding: 0.6rem 0 0.1rem 0.45rem;
+  }
+  .task-frame-content {
+    color: #202020;
+    background: #f0f0f0;
+    padding: 0.25rem;
+    border: solid 1px #333;
+    top: 30px !important;
+  }
+  .task-frame-dragbar {
+    height: 30px;
+  }
+  .task-frame-buttons {
+    margin: 1px;
+    font-size: .6rem;
+    border-bottom: 1px solid transparent;
+    border-left: 1px solid transparent;
+    padding: 0;
+    width: 114px;
+    margin: 0;
+  }
+  .task-frame-buttons {
+    text-align: right;
+    width: 114px;
+  }
+  .task-frame-buttons li {
+    height: auto;
+    width: 1.5rem;
+    float: left;
+    clear: none;
+    top: 0.25rem;
+    right: 0.25rem;
+    left: auto;
+    padding: 0.25rem 0 0.1rem;
+    margin: 1px;
+    text-align: center;
+    transition: background-color .25s ease-in-out,
+                color .25s ease-in-out;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #fff;
+    text-shadow: 0px 0px 2px #000;
+    font-size: 0.85rem;
+  }
+  
+  .task-frame-buttons li span {
+    display: inline-block;
+    padding: 0;
+  }
+  
+  .web-window-action-minimize {
+    background: #5050f0;
+  }
+  
+  .web-window-action-maximize {
+    background: #005000;
+  }
+  
+  .web-window-action-close {
+    background: #600000;
+  }
+  
+  .task-frame-buttons li:hover {
+    cursor: pointer;
+    background: #fff;
+    color: #000;
+  }
+  .web-window-maximize-animation {
+    transition: height .2s ease-in-out,
+      width .2s ease-in-out,
+      left .2s ease-in-out,
+      top .2s ease-in-out;
+  }
+  .web-window-minimize-animation {
+    transition: height .2s ease-in-out,
+      width .2s ease-in-out, 
+      left .2s ease-in-out,
+      top .2s ease-in-out;
+  }
+  
+  .web-window-resizer {
+    cursor: crosshair;
+    background: rgba(255,255,255,0.5);
+    box-shadow: 0 0 0 rgba(255,255,255,0);
+    transform: background ease-in-out 1s;
+  }
+  
+  
+  .web-window-resizer:hover,
+  .web-window-resizer:focus,
+  .web-window-resizer:active {
+    background: rgba(255,255,255,1) !important;
+  }
+  
+  .web-window-resizing-message {
+    position: absolute;
+    margin: auto;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding-top: 40px;
+    font-size: 0.85rem;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+  }

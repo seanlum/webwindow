@@ -1,0 +1,343 @@
+/* 
+
+WebWindow CSS Logical Organization Sections 
+--------------------------------------------------------------
+
+  WebWindow Task Frame Window 
+    a. clearfix
+    b. desktop and before-node placement
+
+Task Frame Content Components ------------
+    1. Task Frame Header
+    2. Task Frame Content
+
+Task Frame Functional Components ---------
+    3. Task Frame Dragbar
+    4. Task Frame Action Buttons 
+    5. Task Frame Resizers 
+
+Task Frame Extras ------------------------
+    6. Is this needed, should be used?
+
+
+WebWindow z-index-ing 
+--------------------------------------------------------------
+
+  task-frame-window-border 
+  z-index: 100 
+    
+    task-frame-header 
+    z-index: 200 
+    
+      task-frame-window-title
+      z-index: 300
+      
+        task-frame-dragbar 
+        z-index: 400 
+
+        .task-frame-buttons li 
+
+
+WebWindow CSS Class heirarchy
+--------------------------------------------------------------
+
+#web-window-desktop
+
+    #before-node
+    .task-frame-window-border
+        .task-frame-resize 
+            .web-window-resizer 
+
+            .web-window-resize-top
+            .web-window-resize-bottom 
+            .web-window-resize-left 
+            .web-window-resize-right
+            .web-window-resize-top-left
+            .web-window-resize-top-right 
+            .web-window-resize-bottom-left 
+            .web-window-resize-bottom-right
+
+            .task-frame-content-border 
+            .task-frame-header 
+                .task-frame-window-title 
+                .task-frame-dragbar 
+                    .task-frame-buttons 
+                        .web-window-action-rollup
+                        .web-window-action-minimize 
+                        .web-window-action-maximize
+                        .web-window-action-close 
+                .task-frame-content
+*/ 
+
+/* a. Clearfix */ 
+
+.task-frame-window-border::after,
+.task-frame-content::after {
+  display: block;
+  clear: both;
+  position: relative;
+  content: '';
+}
+
+/* b. desktop and before-node placement */
+
+#web-window-desktop {
+  margin: 0; 
+  top: 0;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
+#before-node {
+    display: hidden;
+    height: 0; width: 0;
+    position: absolute;
+    margin: 0; padding: 0;
+}
+
+/* Task Frame Content Components ------------ */
+
+.task-frame-window-border {
+  position: absolute;
+  min-height: 20px;
+  min-width: 20px;
+  display: inline-block;
+  z-index: 100 !important;
+  transition: top 0.25s ease-in-out, 
+    left 0.25s ease-in-out, 
+    height 0.25s ease-in-out, 
+    width 0.25s ease-in-out;
+}
+
+.task-frame-window-border.maximized {
+  top: 0 !important;
+  left: 0 !important;
+  height: 100% !important;
+  width: 100% !important;
+  position: fixed;
+}
+
+.task-frame-window-border.task-frame-collapsed {
+  max-height: 29px;
+  height: 29px;
+}
+  
+.task-frame-content-border {
+  position: absolute;
+  top: 0; left: 0;
+  padding: 0; margin: 0;
+  height: 100%; width: 100%;
+  overflow: hidden;
+}
+
+.task-frame-window-border.web-window-maximize {
+  height: 100% !important;
+  width: 100% !important;
+  top: 0; left: 0;
+}
+  
+.task-frame-window-border.web-window-minimize {
+  height: 0 !important;
+  width: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: 0 none !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+/* 1. Task Frame Header */
+.task-frame-header {
+  margin: 0;
+  padding: 0;
+  top: 0;
+  z-index: 200;
+}
+.task-frame-header {
+  min-height: 1.75rem;
+}
+.task-frame-window-title {
+  position: relative;
+  max-width: 100%;
+  min-width: 100%;
+  margin: 0;
+  content: '';
+  min-height: 1.2rem;
+  z-index: 300 !important;
+  padding: 0.35rem;
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+}
+
+/* 2. Task Frame Content */
+.task-frame-content {
+  position: absolute;
+  margin: 0; padding: 0;
+  z-index: 100;
+  /* Flex to fill available space of parent */
+  display: flex; 
+  flex: 1 1;
+  flex-grow: 1;
+  top: 0; left: 0;
+  bottom: 0; right: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+  background: rgba(255,255,255,0.9);
+}
+
+/* Task Frame Functional Components --------- */
+
+/* 3. Task Frame Dragbar */
+.task-frame-dragbar {
+  position:absolute;
+  display: block;
+  top: 0; left: 0;
+  bottom: 0; right: 0;
+  margin: 0; padding: 0;
+  z-index: 400 !important;
+  background: transparent;
+}
+
+.task-frame-dragbar {
+  width: 100%;
+}
+
+/* 4. Task Frame Action Buttons  */
+.task-frame-buttons {
+  position: absolute;
+  right: 0; top: 0;
+  margin: 8px 0;
+  display: inline-block;
+  width: 58px;
+  text-align: right;
+  align-items: right;
+  color: #fff;
+}
+.task-frame-buttons li {
+  position: relative;
+  z-index: 500 !important;
+  display: block;
+  float: left;
+}
+.task-frame-buttons li span {
+  display: block;
+}
+.web-window-action-close span {
+  margin-top: -4px;
+  margin-left: 0px;
+}
+.web-window-action-maximize span {
+  margin-top: -4px;
+  margin-left: 0px;
+}
+.web-window-action-minimize span {
+  margin-top: -4px;
+  margin-left: -1px;
+} 
+
+.web-window-action-rollup span {
+  margin-top: -4px;
+}
+
+/* 5. Task Frame Resizers  
+
+      Note: 
+      
+      by default backgrounds are overridden in the user styles 
+      sheet, these background colors are here for debugging, 
+      so if you want to edit the resizers, the odd background
+      colors act as a visual aid, and can all be changed to 
+      one color by specifying a rule for .web-window-resizer
+*/
+
+.task-frame-resize {
+  position: absolute;
+  display: block;
+  height: 100%;
+  width: 100%;
+  content: ' ';
+  margin: 0;
+  z-index: 80;
+  background-color: transparent;
+  transition: background-color 0.5s ease-in-out;
+}
+.task-frame-resize.resizing,
+.web-window-modifying-windows .task-frame-resize {
+  z-index : 900;
+  background-color: rgba(255,255,255, 0.8);
+}
+.web-window-resize-top {
+  height: 16px;
+  top: -16px;
+  left: 0;
+  width: 100%;
+  background: red;
+}
+
+.web-window-resize-left {
+  width: 16px;
+  height: 100%;
+  top: 0;
+  left: -16px;
+  background:tan;
+}
+.web-window-resize-right {
+  width: 16px;
+  height: 100%;
+  top: 0;
+  right: -16px;
+  background: green;
+}
+.web-window-resize-bottom {
+  width: 100%;
+  height: 16px;
+  bottom: -16px;
+  left: 0;
+  background: blue;
+}
+.web-window-resize-top-left {
+  height: 16px;
+  width: 16px;
+  top: -16px;
+  left: -16px;
+  background: yellow;
+}
+.web-window-resize-top-right {
+  height: 16px;
+  width: 16px;
+  top: -16px;
+  right: -16px;
+  background: cyan;
+}
+.web-window-resize-bottom-right {
+  height: 16px;
+  width: 16px;
+  bottom: -16px;
+  right: -16px;
+  background: magenta;
+}
+.web-window-resize-bottom-left {
+  height: 16px;
+  width: 16px;
+  bottom: -16px;
+  left: -16px;
+  background: teal;
+}
+.web-window-resizer {
+  position: absolute;
+  display: block;
+  border: 0;
+  margin: 0;
+  z-index: 10;
+  background: rgba(255,255,255, 0.5)
+}
+/* Task Frame Extras ------------------------ */
+/* 6. Is this needed, should be used?
+.web-window-invisible {
+  display: none;
+  opacity: 0;
+}
+*/

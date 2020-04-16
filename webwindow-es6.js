@@ -87,12 +87,115 @@ class WebWindowControl {
     setParentWindow(newParentID) {
         this.state.parentWindow = newParentID;
     }
+
+    getParentWindow() {
+        return document.getElementById(this.state.parentWindow);
+    }
+
+    firstNumber(inputStr) {
+        if (inputStr !== null) {
+            let num = /^(\d+)/.exec(inputStr)
+            if (num) {
+                return Number(num[0])
+            }
+        }
+    }
 }
 
 class WebWindowResizer extends WebWindowControl {
+    constructor(windowID, direction, className) {
+        super(windowID, 'Resizer ' + direction);
+        this.setClassName(className);
+        this.direction = direction;
+        this.actionFinishHandler = this.actionFinish.bind(this);
+        this.actionStartHandler = this.actionStart.bind(this);
+        this.resizeHandler = this.handleResize.bind(this);
+        this.rootElement.addEventListener('click', this.resizeHandler);
+    }
+
+    finalCallback(finalEvent) {
+        let diffY = (finalEvent.pageY - this.onClickEvent.pageY)
+        let diffX = (finalEvent.pageX - this.onClickEvent.pageX)
+        let currentWindow = this.getParentWindow();
+        switch (this.direction) {
+            case 'top':
+                currentWindow.style.top = (this.firstNumber(currentWindow.style.top) + diffY) + 'px';
+                currentWindow.style.height = (this.firstNumber(currentWindow.style.height) - diffY) + 'px';
+                break;
+            case 'left':
+                currentWindow.style.left = (this.firstNumber(currentWindow.style.left) + diffX) + 'px';
+                currentWindow.style.width = (this.firstNumber(currentWindow.style.width) - diffX) + 'px';
+                break;
+            case 'right':
+                currentWindow.style.width = (this.firstNumber(currentWindow.style.width) + diffX) + 'px';
+                break;
+            case 'bottom':
+                currentWindow.style.height = (this.firstNumber(currentWindow.style.height) + diffY) + 'px';
+                break;
+            case 'top-left':
+                currentWindow.style.top = (this.firstNumber(currentWindow.style.top) + diffY) + 'px';
+                currentWindow.style.height = (this.firstNumber(currentWindow.style.height) - diffY) + 'px';
+                currentWindow.style.left = (this.firstNumber(currentWindow.style.left) + diffX) + 'px';
+                currentWindow.style.width = (this.firstNumber(currentWindow.style.width) - diffX) + 'px';
+                break;
+            case 'top-right':
+                currentWindow.style.top = (this.firstNumber(currentWindow.style.top) + diffY) + 'px';
+                currentWindow.style.height = (this.firstNumber(currentWindow.style.height) - diffY) + 'px';
+                currentWindow.style.width = (this.firstNumber(currentWindow.style.width) + diffX) + 'px';
+                break;
+            case 'bottom-left':
+                currentWindow.style.height = (this.firstNumber(currentWindow.style.height) + diffY) + 'px';
+                currentWindow.style.left = (this.firstNumber(currentWindow.style.left) + diffX) + 'px';
+                currentWindow.style.width = (this.firstNumber(currentWindow.style.width) - diffX) + 'px';
+                break;
+            case 'bottom-right':
+                currentWindow.style.width = (this.firstNumber(currentWindow.style.width) + diffX) + 'px';
+                currentWindow.style.height = (this.firstNumber(currentWindow.style.height) + diffY) + 'px';
+                break;
+            default:
+                break;
+        }
+        window.removeEventListener('click', this.actionFinishHandler)
+    }
+
+    actionFinish(finalEvent) {
+        if (this.onClickEvent) {
+            this.finalCallback(finalEvent)
+        }
+    }
+
+    actionStart(mouseUpEvent) {
+        window.addEventListener('click', this.actionFinishHandler)
+        window.removeEventListener('click', this.actionStartHandler)
+    }
+
+    handleResize(onClickEvent) {
+        this.onClickEvent = onClickEvent;
+        window.addEventListener('click', this.actionStartHandler)
+    }
+}
+
+class WebWindowResizers extends WebWindowControl {
     constructor(windowID) {
         super(windowID, 'Resizer');
         this.setClassName(WebWindowEnum.taskFrameResize);
+        [
+            { control: 'top', className: WebWindowEnum.resizeTop, direction: 'top' },
+            { control: 'bottom', className: WebWindowEnum.resizeBottom, direction: 'bottom' },
+            { control: 'left', className: WebWindowEnum.resizeLeft, direction: 'left' },
+            { control: 'right', className: WebWindowEnum.resizeRight, direction: 'right' },
+            { control: 'topleft', className: WebWindowEnum.resizeTopLeft, direction: 'top-left' },
+            { control: 'bottomleft', className: WebWindowEnum.resizeBottomLeft, direction: 'bottom-left' },
+            { control: 'topright', className: WebWindowEnum.resizeTopRight, direction: 'top-right' },
+            { control: 'bottomright', className: WebWindowEnum.resizeBottomRight, direction: 'bottom-right' },
+        ].map((initData) => {
+            this[initData.control] = new WebWindowResizer(
+                windowID,
+                initData.direction,
+                WebWindowEnum.resizer + ' ' + initData.className
+            );
+            this.addControl(this[initData.control]);
+        });
     }
 }
 
@@ -170,7 +273,7 @@ class WebWindow extends WebWindowControl {
             top: initStyles.top ? initStyles.top : '200px',
             left: initStyles.left ? initStyles.left : '200px'
         }
-        this.resizer = new WebWindowResizer(this.state.id);
+        this.resizer = new WebWindowResizers(this.state.id);
         this.header = new WebWindowHeader(this.state.id);
         this.content = new WebWindowContent(this.state.id);
         this.border = new WebWindowContentBorder(this.state.id, this.header, this.content);
@@ -210,4 +313,4 @@ class WebWindow extends WebWindowControl {
 webwindow = new WebWindow('test-task');
 webwindow.setID('New Test!');
 console.log(webwindow.border.content.state.parentWindow);
-console.log(webwindow.content.state.parentWindow);
+console.log(webwindow.resizer.topright);
