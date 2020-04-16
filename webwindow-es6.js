@@ -119,6 +119,10 @@ class WebWindowControl {
     removeClass(element, toRemove) {
         element.className = element.className.replace(new RegExp(toRemove,'g'), '').replace(/\s+/g, ' ').trim()
     }
+
+    hasClass(element, toCheck) {
+        return element.className.split(/\s{1,}/).indexOf(toCheck) >= 0
+    }
 }
 
 class WebWindowEventControl extends WebWindowControl {
@@ -269,9 +273,104 @@ class WebWindowDragBar extends WebWindowEventControl {
     }
 }
 
+class WebWindowControlAction extends WebWindowControl {
+    constructor(windowID, action, className, handler, symbol) {
+        super(windowID, action);
+        this.rootElement = document.createElement('li');
+        this.rootElement.className = className;
+        if (handler) {
+            this.rootElement.addEventListener('click', handler);
+        }
+        if (symbol) {
+            this.setSymbol(symbol);
+        }
+    }
+
+    setSymbol(content) {
+        this.rootElement.innerHTML = content;
+    }
+}
+
 class WebWindowControls extends WebWindowControl {
-    constructor(windowID) {
+
+    doRollup() {
+        let currentWindow = this.getParentWindow();
+        if (!this.hasClass(currentWindow, WebWindowEnum.taskFrameCollapsed)) {
+            currentWindow.className += ' ' + WebWindowEnum.taskFrameCollapsed;
+        } else if (this.hasClass(currentWindow, WebWindowEnum.taskFrameCollapsed)) {
+            this.removeClass(currentWindow, WebWindowEnum.taskFrameCollapsed);
+        }
+    }
+
+    doMaximize() {
+        let currentWindow = this.getParentWindow();
+        if (!this.hasClass(currentWindow, WebWindowEnum.taskFrameWindowBorderMaximized)) {
+            currentWindow.className += ' ' + WebWindowEnum.taskFrameWindowBorderMaximized
+        } else if (this.hasClass(currentWindow, WebWindowEnum.taskFrameWindowBorderMaximized)) {
+            this.removeClass(currentWindow, WebWindowEnum.taskFrameWindowBorderMaximized)
+        }
+    }
+
+    doMinimize() {
+        let currentWindow = this.getParentWindow();
+        if (!this.hasClass(currentWindow, WebWindowEnum.minimize)) {
+            currentWindow.className += ' ' + WebWindowEnum.minimize
+        } else if (this.hasClass(currentWindow, WebWindowEnum.minimize)) {
+            this.removeClass(currentWindow, WebWindowEnum.minimize)
+        }
+    }
+
+    doClose() {
+        let currentWindow = this.getParentWindow();
+        setTimeout(() => {
+            document.body.removeChild(currentWindow);
+            if (this.closeHandler) {
+                this.closeHandler();
+            }
+        }, 0)
+    }
+
+    constructor(windowID, closeHandler) {
         super(windowID, 'Window Controls');
+        console.log(closeHandler.toString());
+        if (closeHandler) {
+            this.closeHandler = closeHandler;
+        }
+        this.rootElement = document.createElement('ul');
+        this.rollup = new WebWindowControlAction(
+            windowID,
+            'rollup',
+            WebWindowEnum.actionRollUp,
+            this.doRollup.bind(this),
+            '&#x2195');
+
+        this.minimize = new WebWindowControlAction(
+            windowID,
+            'minimize',
+            WebWindowEnum.actionMinimize,
+            this.doMinimize.bind(this),
+            '&#8722;');
+
+        this.maximize = new WebWindowControlAction(
+            windowID,
+            'maximize',
+            WebWindowEnum.actionMaximize,
+            this.doMaximize.bind(this),
+            '&#9744'
+        );
+
+        this.close = new WebWindowControlAction(
+            windowID,
+            'close',
+            WebWindowEnum.actionClose,
+            this.doClose.bind(this),
+            '&times;'
+        );
+
+        this.addControl(this.rollup);
+        this.addControl(this.minimize);
+        this.addControl(this.maximize);
+        this.addControl(this.close);
         this.setClassName(WebWindowEnum.taskFrameButtons);
     }
 }
@@ -281,6 +380,8 @@ class WebWindowTitle extends WebWindowControl {
         super(windowID, 'Window Title');
         this.rootElement.innerText = windowTitle;
         this.setClassName(WebWindowEnum.taskFrameWindowTitle);
+        this.actionsElement = document.createElement('ul');
+
     }
 
     setTitle(newTitle) {
@@ -289,10 +390,10 @@ class WebWindowTitle extends WebWindowControl {
 }
 
 class WebWindowHeader extends WebWindowControl {
-    constructor(windowID, windowTitle) {
+    constructor(windowID, windowTitle, closeHandler) {
         super(windowID, 'Header');
         this.dragbar = new WebWindowDragBar(windowID);
-        this.controls = new WebWindowControls(windowID);
+        this.controls = new WebWindowControls(windowID, closeHandler);
         this.title = new WebWindowTitle(windowID, windowTitle);
         this.addControl(this.title);
         this.addControl(this.dragbar);
@@ -331,7 +432,7 @@ class WebWindowContentBorder extends WebWindowControl {
 }
 
 class WebWindow extends WebWindowControl {
-    constructor(taskID, windowTitle, initStyles={}) {
+    constructor(taskID, windowTitle, initStyles={}, closeHandler) {
         super(taskID, 'Main Window');
         this.state.id = taskID;
         this.state.title = windowTitle;
@@ -342,7 +443,7 @@ class WebWindow extends WebWindowControl {
             left: initStyles.left ? initStyles.left : '200px'
         }
         this.resizer = new WebWindowResizers(this.state.id);
-        this.header = new WebWindowHeader(this.state.id, windowTitle);
+        this.header = new WebWindowHeader(this.state.id, windowTitle, closeHandler);
         this.content = new WebWindowContent(this.state.id);
         this.border = new WebWindowContentBorder(this.state.id, this.header, this.content);
         this.addControl(this.resizer);
@@ -381,9 +482,17 @@ class WebWindow extends WebWindowControl {
     setTitle(newTitle) {
         this.header.title.setTitle(newTitle);
     }
+
+    setReference(ref) {
+        this.state.reference = ref;
+    }
 }
 
-webwindow = new WebWindow('test-task', 'Testing title');
+webwindow = new WebWindow('test-task', 'Testing title', undefined, function() {
+    delete webwindow;
+});
+webwindow.setReference(webwindow);
 webwindow.setID('New Test!');
+
 console.log(webwindow.border.content.state.parentWindow);
 console.log(webwindow.resizer.topright);

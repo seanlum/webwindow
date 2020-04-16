@@ -119,8 +119,7 @@ WebWindow CSS Class heirarchy
 }
 
 .task-frame-window-border.task-frame-collapsed {
-  max-height: 29px;
-  height: 29px;
+  height: 29px !important;
 }
   
 .task-frame-content-border {
