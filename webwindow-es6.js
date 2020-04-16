@@ -55,8 +55,12 @@ const WebWindowEnum = {
 
 class WebWindowControl {
     rootElement = document.createElement('div');
-    constructor(name) {
-        this.state = {}
+    constructor(parentWindow, name) {
+        if (this.state === undefined) {
+            this.state = {}
+        }
+        this.state.parentWindow = parentWindow;
+        this.state.name = name;
     }
 
     updateStyles() {
@@ -79,60 +83,98 @@ class WebWindowControl {
     setClassName(className) {
         this.rootElement.className = className;
     }
+
+    setParentWindow(newParentID) {
+        this.state.parentWindow = newParentID;
+    }
 }
 
 class WebWindowResizer extends WebWindowControl {
     constructor(windowID) {
-        super('Resizer');
-        this.state.parentWindow = windowID;
+        super(windowID, 'Resizer');
         this.setClassName(WebWindowEnum.taskFrameResize);
+    }
+}
+
+class WebWindowDragBar extends WebWindowControl {
+    constructor(windowID) {
+        super(windowID, 'Drag bar');
+        this.setClassName(WebWindowEnum.taskFrameDragbar);
+    }
+}
+
+class WebWindowControls extends WebWindowControl {
+    constructor(windowID) {
+        super(windowID, 'Window Controls');
+        this.setClassName(WebWindowEnum.taskFrameButtons);
+    }
+}
+
+class WebWindowTitle extends WebWindowControl {
+    constructor(windowID) {
+        super(windowID, 'Window Title');
+        this.setClassName(WebWindowEnum.taskFrameWindowTitle);
     }
 }
 
 class WebWindowHeader extends WebWindowControl {
     constructor(windowID) {
-        super('Header');
-        this.state.parentWindow = windowID;
+        super(windowID, 'Header');
+        this.dragbar = new WebWindowDragBar(windowID);
+        this.controls = new WebWindowControls(windowID);
+        this.title = new WebWindowTitle(windowID);
+        this.addControl(this.title);
+        this.addControl(this.dragbar);
+        this.addControl(this.controls);
         this.setClassName(WebWindowEnum.taskFrameHeader);
+    }
+
+    setParentWindow(newID) {
+        [
+            this,
+            this.dragbar,
+            this.controls,
+            this.title,
+        ].map((elem) => {
+            super.setParentWindow(newID)
+        })
     }
 }
 
 class WebWindowContent extends WebWindowControl {
     constructor(windowID) {
-        super('Content');
-        this.state.parentWindow = windowID;
+        super(windowID, 'Content');
         this.setClassName(WebWindowEnum.taskFrameContent);
     }
 }
 
 class WebWindowContentBorder extends WebWindowControl {
-    constructor(windowID) {
-        super('Content Border');
-        this.state.parentWindow = windowID;
+    constructor(windowID, header, content) {
+        super(windowID, 'Content Border');
         this.setClassName(WebWindowEnum.taskFrameContentBorder);
+        this.header = header;
+        this.content = content;
+        this.addControl(header);
+        this.addControl(content);
     }
 }
 
 class WebWindow extends WebWindowControl {
     constructor(taskID, taskTitle, initStyles={}) {
-        super();
-        this.state = {
-            id : taskID,
-            title : taskTitle,
-            style : {
-                height: initStyles.height ? initStyles.height : '200px', 
-                width: initStyles.width ? initStyles.width : '300px',
-                top: initStyles.top ? initStyles.top : '200px',
-                left: initStyles.left ? initStyles.left : '200px'
-            }
+        super(taskID, 'Main Window');
+        this.state.id = taskID;
+        this.state.title = taskTitle;
+        this.state.style = {
+            height: initStyles.height ? initStyles.height : '200px',
+            width: initStyles.width ? initStyles.width : '300px',
+            top: initStyles.top ? initStyles.top : '200px',
+            left: initStyles.left ? initStyles.left : '200px'
         }
         this.resizer = new WebWindowResizer(this.state.id);
         this.header = new WebWindowHeader(this.state.id);
         this.content = new WebWindowContent(this.state.id);
-        this.border = new WebWindowContentBorder(this.state.id);
+        this.border = new WebWindowContentBorder(this.state.id, this.header, this.content);
         this.addControl(this.resizer);
-        this.border.addControl(this.header);
-        this.border.addControl(this.content);
         this.addControl(this.border);
         this.rootElement.id = this.state.id;
         this.rootElement.className = WebWindowEnum.taskFrameWindowBorder;
@@ -152,7 +194,20 @@ class WebWindow extends WebWindowControl {
         return this.header;
     }
 
+    setID(newID) {
+        [
+            this,
+            this.resizer,
+            this.border,
+            this.header,
+            this.content
+        ].map((elem) => {
+            elem.setParentWindow(newID)
+        })
+    }
 }
 
 webwindow = new WebWindow('test-task');
-console.log(webwindow.getElement().innerHTML);
+webwindow.setID('New Test!');
+console.log(webwindow.border.content.state.parentWindow);
+console.log(webwindow.content.state.parentWindow);
