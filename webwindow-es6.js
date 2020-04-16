@@ -100,15 +100,55 @@ class WebWindowControl {
             }
         }
     }
+
+    ifSizes(elem) {
+        if (!(elem.style.left)) {
+            elem.style.left = elem.clientLeft + 'px';
+        }
+        if (!(elem.style.top)) {
+            elem.style.top = elem.clientTop + 'px';
+        }
+        if (!(elem.style.width)) {
+            elem.style.width = elem.clientWidth + 'px';
+        }
+        if (!(elem.style.height)) {
+            elem.style.height = elem.clientHeight + 'px';
+        }
+    }
+
+    removeClass(element, toRemove) {
+        element.className = element.className.replace(new RegExp(toRemove,'g'), '').replace(/\s+/g, ' ').trim()
+    }
 }
 
-class WebWindowResizer extends WebWindowControl {
+class WebWindowEventControl extends WebWindowControl {
+    constructor(windowID, name) {
+        super(windowID, name);
+        this.actionFinishHandler = this.actionFinish.bind(this);
+        this.actionStartHandler = this.actionStart.bind(this);
+    }
+
+    actionFinish(finalEvent) {
+        if (this.onClickEvent) {
+            this.finalCallback(finalEvent)
+        }
+    }
+
+    actionStart(mouseUpEvent) {
+        window.addEventListener('click', this.actionFinishHandler)
+        window.removeEventListener('click', this.actionStartHandler)
+    }
+
+    setParentWindow(newID) {
+        super.setParentWindow(newID);
+    }
+}
+
+class WebWindowResizer extends WebWindowEventControl {
     constructor(windowID, direction, className) {
         super(windowID, 'Resizer ' + direction);
         this.setClassName(className);
         this.direction = direction;
-        this.actionFinishHandler = this.actionFinish.bind(this);
-        this.actionStartHandler = this.actionStart.bind(this);
         this.resizeHandler = this.handleResize.bind(this);
         this.rootElement.addEventListener('click', this.resizeHandler);
     }
@@ -158,19 +198,9 @@ class WebWindowResizer extends WebWindowControl {
         window.removeEventListener('click', this.actionFinishHandler)
     }
 
-    actionFinish(finalEvent) {
-        if (this.onClickEvent) {
-            this.finalCallback(finalEvent)
-        }
-    }
-
-    actionStart(mouseUpEvent) {
-        window.addEventListener('click', this.actionFinishHandler)
-        window.removeEventListener('click', this.actionStartHandler)
-    }
-
     handleResize(onClickEvent) {
         this.onClickEvent = onClickEvent;
+        this.ifSizes(this.getParentWindow())
         window.addEventListener('click', this.actionStartHandler)
     }
 }
@@ -209,10 +239,33 @@ class WebWindowResizers extends WebWindowControl {
     }
 }
 
-class WebWindowDragBar extends WebWindowControl {
+class WebWindowDragBar extends WebWindowEventControl {
     constructor(windowID) {
         super(windowID, 'Drag bar');
         this.setClassName(WebWindowEnum.taskFrameDragbar);
+        this.moveHandler = this.handleMove.bind(this);
+        this.rootElement.addEventListener('click', this.moveHandler);
+    }
+
+    finalCallback(finalEvent) {
+        let currentWindow = this.getParentWindow()
+        let relX = finalEvent.pageX -  this.onClickEvent.pageX
+        let relY = finalEvent.pageY - this.onClickEvent.pageY
+        let newTop = (this.firstNumber(currentWindow.style.top) + relY);
+        let newLeft = (this.firstNumber(currentWindow.style.left) + relX);
+        currentWindow.style.top = (newTop <= 0 ? 30 : ((newTop >= window.clientHeight) ? window.clientHeight - 40 : newTop)) + 'px'
+        currentWindow.style.left = (newLeft <= 0 ? 30 : ((newLeft >= window.clientWidth) ? window.clientWidh - 40 : newLeft)) + 'px'
+        window.removeEventListener('click', this.actionFinishHandler)
+    }
+
+    handleMove(onClickEvent) {
+        this.onClickEvent = onClickEvent;
+        this.ifSizes(this.getParentWindow());
+        window.addEventListener('click', this.actionStartHandler)
+    }
+
+    setParentWindow(newID) {
+        super.setParentWindow(newID);
     }
 }
 
@@ -224,18 +277,23 @@ class WebWindowControls extends WebWindowControl {
 }
 
 class WebWindowTitle extends WebWindowControl {
-    constructor(windowID) {
+    constructor(windowID, windowTitle) {
         super(windowID, 'Window Title');
+        this.rootElement.innerText = windowTitle;
         this.setClassName(WebWindowEnum.taskFrameWindowTitle);
+    }
+
+    setTitle(newTitle) {
+        this.rootElement.innerText = newTitle;
     }
 }
 
 class WebWindowHeader extends WebWindowControl {
-    constructor(windowID) {
+    constructor(windowID, windowTitle) {
         super(windowID, 'Header');
         this.dragbar = new WebWindowDragBar(windowID);
         this.controls = new WebWindowControls(windowID);
-        this.title = new WebWindowTitle(windowID);
+        this.title = new WebWindowTitle(windowID, windowTitle);
         this.addControl(this.title);
         this.addControl(this.dragbar);
         this.addControl(this.controls);
@@ -243,13 +301,13 @@ class WebWindowHeader extends WebWindowControl {
     }
 
     setParentWindow(newID) {
+        super.setParentWindow(newID);
         [
-            this,
             this.dragbar,
             this.controls,
             this.title,
         ].map((elem) => {
-            super.setParentWindow(newID)
+           elem.setParentWindow(newID)
         })
     }
 }
@@ -273,10 +331,10 @@ class WebWindowContentBorder extends WebWindowControl {
 }
 
 class WebWindow extends WebWindowControl {
-    constructor(taskID, taskTitle, initStyles={}) {
+    constructor(taskID, windowTitle, initStyles={}) {
         super(taskID, 'Main Window');
         this.state.id = taskID;
-        this.state.title = taskTitle;
+        this.state.title = windowTitle;
         this.state.style = {
             height: initStyles.height ? initStyles.height : '200px',
             width: initStyles.width ? initStyles.width : '300px',
@@ -284,7 +342,7 @@ class WebWindow extends WebWindowControl {
             left: initStyles.left ? initStyles.left : '200px'
         }
         this.resizer = new WebWindowResizers(this.state.id);
-        this.header = new WebWindowHeader(this.state.id);
+        this.header = new WebWindowHeader(this.state.id, windowTitle);
         this.content = new WebWindowContent(this.state.id);
         this.border = new WebWindowContentBorder(this.state.id, this.header, this.content);
         this.addControl(this.resizer);
@@ -319,9 +377,13 @@ class WebWindow extends WebWindowControl {
             elem.setParentWindow(newID)
         })
     }
+
+    setTitle(newTitle) {
+        this.header.title.setTitle(newTitle);
+    }
 }
 
-webwindow = new WebWindow('test-task');
+webwindow = new WebWindow('test-task', 'Testing title');
 webwindow.setID('New Test!');
 console.log(webwindow.border.content.state.parentWindow);
 console.log(webwindow.resizer.topright);
