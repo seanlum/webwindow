@@ -197,6 +197,16 @@ class WebWindowResizers extends WebWindowControl {
             this.addControl(this[initData.control]);
         });
     }
+
+    setParentWindow(newID) {
+        super.setParentWindow(newID);
+        [
+            'top', 'bottom', 'left', 'right',
+            'topleft', 'bottomleft', 'bottomright'
+        ].map((control) => {
+            this[control].setParentWindow(newID)
+        })
+    }
 }
 
 class WebWindowDragBar extends WebWindowControl {
@@ -298,6 +308,7 @@ class WebWindow extends WebWindowControl {
     }
 
     setID(newID) {
+        this.rootElement.id = newID;
         [
             this,
             this.resizer,
