@@ -332,7 +332,6 @@ class WebWindowControls extends WebWindowControl {
 
     constructor(windowID, closeHandler) {
         super(windowID, 'Window Controls');
-        console.log(closeHandler.toString());
         if (closeHandler) {
             this.closeHandler = closeHandler;
         }
@@ -414,9 +413,19 @@ class WebWindowHeader extends WebWindowControl {
 }
 
 class WebWindowContent extends WebWindowControl {
-    constructor(windowID) {
+    constructor(windowID, content) {
         super(windowID, 'Content');
         this.setClassName(WebWindowEnum.taskFrameContent);
+        this.setContent(content);
+    }
+
+    setContent(content) {
+        if (content instanceof HTMLElement) {
+            this.rootElement.innerHTML = '';
+            this.rootElement.appendChild(content);
+        } else if (typeof '' === typeof content) {
+            this.rootElement.innerHTML = content;
+        }
     }
 }
 
@@ -432,7 +441,7 @@ class WebWindowContentBorder extends WebWindowControl {
 }
 
 class WebWindow extends WebWindowControl {
-    constructor(taskID, windowTitle, initStyles={}, closeHandler) {
+    constructor(taskID, content, windowTitle, initStyles={}, closeHandler) {
         super(taskID, 'Main Window');
         this.state.id = taskID;
         this.state.title = windowTitle;
@@ -444,7 +453,7 @@ class WebWindow extends WebWindowControl {
         }
         this.resizer = new WebWindowResizers(this.state.id);
         this.header = new WebWindowHeader(this.state.id, windowTitle, closeHandler);
-        this.content = new WebWindowContent(this.state.id);
+        this.content = new WebWindowContent(this.state.id, content);
         this.border = new WebWindowContentBorder(this.state.id, this.header, this.content);
         this.addControl(this.resizer);
         this.addControl(this.border);
@@ -483,16 +492,20 @@ class WebWindow extends WebWindowControl {
         this.header.title.setTitle(newTitle);
     }
 
-    setReference(ref) {
-        this.state.reference = ref;
+    setContent(content) {
+        this.content.setContent(content);
     }
 }
 
-webwindow = new WebWindow('test-task', 'Testing title', undefined, function() {
+header = document.createElement('h2');
+header.innerText = 'Welcome to WebWindow';
+
+webwindow = new WebWindow('test-task', header, 'Testing title', {
+    width : '400px',
+    height: '100px',
+    left: ((window.innerWidth / 2) - 200) + 'px',
+    top: ((window.innerHeight / 2) - 100) + 'px'
+}, function() {
     delete webwindow;
 });
-webwindow.setReference(webwindow);
-webwindow.setID('New Test!');
 
-console.log(webwindow.border.content.state.parentWindow);
-console.log(webwindow.resizer.topright);
