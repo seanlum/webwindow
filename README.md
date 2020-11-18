@@ -2,11 +2,11 @@
 
 # (New) React - test screenshots from three different operating systems
 ## 
-![Webwindow on an Android tablet Firefox](https://github.com/seanlum/webwindow/raw/react-1.0.0/React/screenshots/Running-on-Firefox-in-Android-Tablet.png "Android Tablet Browser")
+![Webwindow on an Android tablet Firefox](https://raw.githubusercontent.com/seanlum/webwindow/react-0.0.1/React/screenshots/Running-on-Firefox-in-Android-Tablet.png "Android Tablet Browser")
 
-![Webwindow on an Manjaro desktop Firefox](https://github.com/seanlum/webwindow/raw/react-1.0.0/React/screenshots/Running-on-Firefox-in-Manjaro-Desktop.png "Manjaro Desktop Browser")
+![Webwindow on an Manjaro desktop Firefox](https://raw.githubusercontent.com/seanlum/webwindow/react-0.0.1/React/screenshots/Running-on-Firefox-in-Manjaro-Desktop.png "Manjaro Desktop Browser")
 
-![Webwindow on an iPhone Safari](https://github.com/seanlum/webwindow/raw/react-1.0.0/React/screenshots/Running-on-Firefox-in-Manjaro-Desktop.png "Manjaro Desktop Browser")
+![Webwindow on an iPhone Safari](https://raw.githubusercontent.com/seanlum/webwindow/react-0.0.1/React/screenshots/Running-on-Safari-in-iPhone-11.png "iPhone Safari")
 
 
 # (New) ES6 is being worked on in tandem with React now
